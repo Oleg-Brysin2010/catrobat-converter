@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Конвертер Catrobat в APK</title>
-    <!-- ПОД КАТЕГОРИЧЕСКИМ ЗАПРЕТОМ ССЫЛКА НА ОБЫЧНЫЙ CLOUDFLARE. ВСТАВЛЯЕМ ПРАВИЛЬНЫЙ СКРИПТ БИБЛИОТЕКИ: -->
-    <script src="https://jsdelivr.net"></script>
+    <!-- Официальное и стабильное подключение библиотеки JSZip -->
+    <script src="https://cloudflare.com"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -90,7 +90,7 @@
 
     // Слушаем, когда пользователь выберет файл
     fileInput.addEventListener('change', (e) => {
-        const file = e.target.files[0]; // Исправлено: добавили [0] для выбора первого файла
+        const file = e.target.files[0];
         if (file) processCatrobatFile(file);
     });
 
@@ -113,7 +113,7 @@
                 // Выводим информацию на экран
                 document.getElementById('proj-name').innerText = file.name.replace('.catrobat', '');
                 document.getElementById('proj-files').innerText = fileCount;
-                infoBox.style.style.display = "block";
+                infoBox.style.display = "block";
 
                 console.log("Список файлов в проекте:", zip.files);
             }).catch(function(err) {
@@ -132,7 +132,7 @@
     dropZone.addEventListener('drop', (e) => {
         e.preventDefault();
         dropZone.style.background = '#f9fbfd';
-        const file = e.dataTransfer.files[0]; // Исправлено: добавили [0]
+        const file = e.dataTransfer.files[0];
         if (file) processCatrobatFile(file);
     });
 </script>
