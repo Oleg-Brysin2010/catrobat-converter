@@ -53,7 +53,7 @@ jobs:
         echo '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"><script src="player.js"></script><style>body,html{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#000}#pocketCodePlayer{width:100%;height:100%}</style></head><body><div id="pocketCodePlayer"></div><script>document.addEventListener("DOMContentLoaded", function(){ if(typeof PocketCode !== "undefined") { PocketCode.App.init("project/"); } });</script></body></html>' > www/index.html
         echo "Проект упакован в HTML5!"
 
-    # 7. Инициализация Capacitor и исправление дубликатов Kotlin
+    # 7. Инициализация Capacitor и жесткое исправление дубликатов Kotlin
     - name: Создание проекта Android и фикс дубликатов
       run: |
         npm install -g @capacitor/cli
@@ -61,9 +61,9 @@ jobs:
         npx cap init "CatrobatApp" "com.yourconverter.app" --web-dir=www
         npx cap add android
         
-        # Исправляем ошибку Duplicate class в build.gradle
-        echo -e "\nconfigurations.all {\n    resolutionStrategy.eachDependency { DependencyResolveDetails details ->\n        if (details.requested.group == 'org.jetbrains.kotlin') {\n            details.useVersion '1.8.22'\n        }\n    }\n}" >> android/build.gradle
-        echo "Конфликт версий Kotlin успешно исправлен!"
+        # Фикс дубликатов Kotlin: принудительно игнорируем повторяющиеся файлы при сборке APK
+        echo -e "\nandroid {\n    packagingOptions {\n        pickFirst 'META-INF/kotlin-stdlipped.kotlin_module'\n        pickFirst 'META-INF/annotation-experimental_release.kotlin_module'\n        exclude 'META-INF/*'\n    }\n}" >> android/app/build.gradle
+        echo "Защита от Duplicate class успешно добавлена!"
 
     # 8. Собираем готовый APK-пакет
     - name: Сборка APK файла
