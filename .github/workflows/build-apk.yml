@@ -14,13 +14,13 @@ jobs:
     - name: Проверка репозитория
       uses: actions/checkout@v4
 
-    # 2. Устанавливаем Node.js (нужен для веб-сборщика)
+    # 2. Устанавливаем Node.js
     - name: Установка Node.js
       uses: actions/setup-node@v4
       with:
         node-version: 20
 
-    # 3. УСТАНАВЛИВАЕМ JAVA 21 (Это исправит ошибку invalid source release)
+    # 3. Устанавливаем Java JDK 21
     - name: Установка Java JDK 21
       uses: actions/setup-java@v4
       with:
@@ -50,21 +50,27 @@ jobs:
       run: |
         mkdir -p www/project
         unzip -o project.catrobat -d www/project/
-        
-        # Создаем стартовый файл для запуска игры
         echo '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"><script src="player.js"></script><style>body,html{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#000}#pocketCodePlayer{width:100%;height:100%}</style></head><body><div id="pocketCodePlayer"></div><script>document.addEventListener("DOMContentLoaded", function(){ if(typeof PocketCode !== "undefined") { PocketCode.App.init("project/"); } });</script></body></html>' > www/index.html
         echo "Проект упакован в HTML5!"
 
-    # 7. Собираем лёгкий APK-пакет через Android SDK
-    - name: Сборка веб-пакета приложения
+    # 7. Инициализация Capacitor и исправление дубликатов Kotlin
+    - name: Создание проекта Android и фикс дубликатов
       run: |
         npm install -g @capacitor/cli
         npm install @capacitor/core @capacitor/android
         npx cap init "CatrobatApp" "com.yourconverter.app" --web-dir=www
         npx cap add android
+        
+        # Исправляем ошибку Duplicate class в build.gradle
+        echo -e "\nconfigurations.all {\n    resolutionStrategy.eachDependency { DependencyResolveDetails details ->\n        if (details.requested.group == 'org.jetbrains.kotlin') {\n            details.useVersion '1.8.22'\n        }\n    }\n}" >> android/build.gradle
+        echo "Конфликт версий Kotlin успешно исправлен!"
+
+    # 8. Собираем готовый APK-пакет
+    - name: Сборка APK файла
+      run: |
         cd android && ./gradlew assembleDebug
 
-    # 8. Отдаем готовый рабочий файл APK
+    # 9. Отдаем готовый рабочий файл APK
     - name: Загрузка готового APK в облако GitHub
       uses: actions/upload-artifact@v4
       with:
