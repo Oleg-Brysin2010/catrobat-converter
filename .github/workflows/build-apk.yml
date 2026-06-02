@@ -1,7 +1,8 @@
 name: Сборщик Catrobat в APK
 
-# Робот будет просыпаться, когда бэкенд или сайт пришлют ему сигнал (repository_dispatch)
+# Робот будет просыпаться кнопкой вручную ИЛИ по сигналу от сайта
 on:
+  workflow_dispatch: # Позволяет запускать сборку вручную во вкладке Actions
   repository_dispatch:
     types: [start-build]
 
@@ -28,11 +29,17 @@ jobs:
         cd template-project
         echo "Шаблон успешно загружен!"
 
-    # 4. Скачиваем файл пользователя (ссылку на который пришлет бэкенд)
+    # 4. Скачиваем файл пользователя (если запуск ручной — качаем тестовый пустой файл)
     - name: Загрузка файла проекта пользователя
       run: |
-        curl -L -o project.catrobat "${{ github.event.client_payload.file_url }}"
-        echo "Файл проекта скачан на сервер сборки!"
+        if [ "${{ github.event.client_payload.file_url }}" != "" ]; then
+          curl -L -o project.catrobat "${{ github.event.client_payload.file_url }}"
+        else
+          echo "Ручной запуск! Создаем тестовый пустой архив..."
+          echo "test" > test.txt
+          zip project.catrobat test.txt
+        fi
+        echo "Файл проекта готов на сервере сборки!"
 
     # 5. Распаковываем проект внутрь шаблона Android-приложения
     - name: Распаковка проекта в ресурсы приложения
@@ -41,14 +48,14 @@ jobs:
         unzip project.catrobat -d template-project/catroid/src/main/assets/projects/default_project
         echo "Проект успешно интегрирован в шаблоны Android!"
 
-    # 6. Запускаем тяжелую компиляцию через Gradle
+    # 6. Запускаем компиляцию через Gradle
     - name: Сборка готового APK файла
       run: |
         cd template-project
         chmod +x gradlew
         ./gradlew assembleDebug --no-daemon
 
-    # 7. Сохраняем готовый APK в интернете, чтобы сайт мог дать ссылку на скачивание
+    # 7. Сохраняем готовый APK в интернете, чтобы его можно было скачать
     - name: Загрузка готового APK в облако GitHub
       uses: actions/upload-artifact@v4
       with:
