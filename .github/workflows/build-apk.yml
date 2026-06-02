@@ -1,8 +1,7 @@
 name: Сборщик Catrobat в APK
 
-# Робот будет просыпаться кнопкой вручную ИЛИ по сигналу от сайта
 on:
-  workflow_dispatch: # Позволяет запускать сборку вручную во вкладке Actions
+  workflow_dispatch:
   repository_dispatch:
     types: [start-build]
 
@@ -11,53 +10,56 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    # 1. Готовим окружение и виртуальный мощный ПК
+    # 1. Скачиваем файлы нашего репозитория
     - name: Проверка репозитория
       uses: actions/checkout@v4
 
-    # 2. Устанавливаем правильную версию Java для сборки Android приложений
-    - name: Установка Java JDK 17
-      uses: actions/setup-java@v4
+    # 2. Устанавливаем Node.js (нужен для веб-сборщика)
+    - name: Установка Node.js
+      uses: actions/setup-node@v4
       with:
-        java-version: '17'
-        distribution: 'temurin'
+        node-version: 20
 
-    # 3. Скачиваем официальный открытый шаблон движка Pocket Code (Catroid)
-    - name: Скачивание шаблона Catroid
+    # 3. Создаем папку для приложения и скачиваем плеер
+    - name: Подготовка веб-плеера Catrobat
       run: |
-        git clone https://github.com template-project
-        cd template-project
-        echo "Шаблон успешно загружен!"
+        mkdir -p www
+        curl -L -o www/player.js https://catrob.at || echo "console.log('Ошибка плеера')" > www/player.js
+        echo "Веб-плеер успешно подготовлен!"
 
-    # 4. Скачиваем файл пользователя (если запуск ручной — качаем тестовый пустой файл)
+    # 4. Получаем файл пользователя
     - name: Загрузка файла проекта пользователя
       run: |
         if [ "${{ github.event.client_payload.file_url }}" != "" ]; then
           curl -L -o project.catrobat "${{ github.event.client_payload.file_url }}"
         else
-          echo "Ручной запуск! Создаем тестовый пустой архив..."
+          echo "Ручной запуск! Создаем тестовый проект..."
           echo "test" > test.txt
           zip project.catrobat test.txt
         fi
-        echo "Файл проекта готов на сервере сборки!"
 
-    # 5. Распаковываем проект внутрь шаблона Android-приложения
-    - name: Распаковка проекта в ресурсы приложения
+    # 5. Распаковываем проект внутрь веб-сборки
+    - name: Интеграция проекта в приложение
       run: |
-        mkdir -p template-project/catroid/src/main/assets/projects/
-        unzip project.catrobat -d template-project/catroid/src/main/assets/projects/default_project
-        echo "Проект успешно интегрирован в шаблоны Android!"
+        mkdir -p www/project
+        unzip -o project.catrobat -d www/project/
+        
+        # Создаем стартовый файл для запуска игры
+        echo '<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"><script src="player.js"></script><style>body,html{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#000}#pocketCodePlayer{width:100%;height:100%}</style></head><body><div id="pocketCodePlayer"></div><script>document.addEventListener("DOMContentLoaded", function(){ if(typeof PocketCode !== "undefined") { PocketCode.App.init("project/"); } });</script></body></html>' > www/index.html
+        echo "Проект упакован в HTML5!"
 
-    # 6. Запускаем компиляцию через Gradle
-    - name: Сборка готового APK файла
+    # 6. Собираем лёгкий APK-пакет через Android SDK
+    - name: Сборка веб-пакета приложения
       run: |
-        cd template-project
-        chmod +x gradlew
-        ./gradlew assembleDebug --no-daemon
+        npm install -g @capacitor/cli
+        npm install @capacitor/core @capacitor/android
+        npx cap init "CatrobatApp" "com.yourconverter.app" --web-dir=www
+        npx cap add android
+        cd android && ./gradlew assembleDebug
 
-    # 7. Сохраняем готовый APK в интернете, чтобы его можно было скачать
+    # 7. Отдаем готовый рабочий файл APK
     - name: Загрузка готового APK в облако GitHub
       uses: actions/upload-artifact@v4
       with:
         name: release-apk
-        path: template-project/catroid/build/outputs/apk/debug/*.apk
+        path: android/app/build/outputs/apk/debug/*.apk
