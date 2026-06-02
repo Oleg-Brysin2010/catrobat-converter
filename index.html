@@ -14,8 +14,15 @@
         #file-input { display: none; }
         #status { margin-top: 20px; font-weight: bold; color: #666; }
         #project-info { margin-top: 15px; text-align: left; font-size: 14px; display: none; background: #eee; padding: 10px; border-radius: 6px; }
-        #build-btn { display: none; margin-top: 20px; width: 100%; padding: 12px; background-color: #2ecc71; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+        
+        button, .btn { width: 100%; padding: 12px; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background 0.2s; margin-top: 20px; text-decoration: none; text-align: center; display: none; }
+        #build-btn { background-color: #2ecc71; color: white; }
         #build-btn:hover { background-color: #27ae60; }
+        
+        #download-btn { background-color: #3498db; color: white; display: none; animation: pulse 1.5s infinite; }
+        #download-btn:hover { background-color: #2980b9; }
+        
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.03); } 100% { transform: scale(1); } }
     </style>
 </head>
 <body>
@@ -26,12 +33,16 @@
         <p>Перетащите сюда файл <b>.catrobat</b> <br>или нажмите для выбора</p>
         <input type="file" id="file-input">
     </div>
+    
     <div id="status">Ожидание файла...</div>
+    
     <div id="project-info">
         <b>Имя проекта:</b> <span id="proj-name">-</span><br>
         <b>Файлов внутри:</b> <span id="proj-files">-</span>
     </div>
+    
     <button id="build-btn" onclick="triggerAndroidBuild()">Скомпилировать в APK 🚀</button>
+    <a id="download-btn" class="btn" href="#" download>Скачать готовый APK! 💾</a>
 </div>
 
 <script>
@@ -39,8 +50,12 @@
     const statusText = document.getElementById('status');
     const infoBox = document.getElementById('project-info');
     const buildBtn = document.getElementById('build-btn');
+    const downloadBtn = document.getElementById('download-btn');
 
-    // Ссылка на ваш личный защищенный сервер
+    const GITHUB_USERNAME = "eg-brysin2010"; 
+    const GITHUB_REPO = "catrobat-converter";  
+    
+    // ССЫЛКА НА ВАШ ТОЧНЫЙ РАБОТАЮЩИЙ СЕРВЕР:
     const SERVER_URL = "https://hf.space";
 
     let uploadedFile = null;
@@ -66,7 +81,8 @@
                 document.getElementById('proj-files').innerText = Object.keys(zip.files).length;
                 infoBox.style.display = "block";
                 buildBtn.style.display = "block";
-            }).catch(function() {
+                downloadBtn.style.display = "none";
+            }).catch(() => {
                 statusText.innerText = "Ошибка разбора файла.";
                 statusText.style.color = "red";
             });
@@ -75,9 +91,10 @@
     }
 
     function triggerAndroidBuild() {
-        statusText.innerText = "Отправляю запрос на сервер сборки... 📡";
+        statusText.innerText = "Запускаем компиляцию через сервер... 📡";
         statusText.style.color = "#4A90E2";
         buildBtn.disabled = true;
+        buildBtn.style.background = "#95a5a6";
 
         fetch(SERVER_URL, {
             method: 'POST',
@@ -87,19 +104,45 @@
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                statusText.innerText = "Робот успешно запущен через ваш сервер! Сборка началась! 🛠️";
-                statusText.style.color = "green";
+                statusText.innerText = "Сборка началась! Робот трудится на сервере. Подождите около 1-2 минут... ⏳";
+                buildBtn.style.display = "none";
+                checkForReadyAPK();
             } else {
-                statusText.innerText = "Ошибка сервера: " + data.message;
+                statusText.innerText = "Ошибка запуска: " + data.message;
                 statusText.style.color = "red";
                 buildBtn.disabled = false;
+                buildBtn.style.background = "#2ecc71";
             }
         })
         .catch(() => {
-            statusText.innerText = "Ошибка связи с сервером API. Проверьте, запустился ли Space.";
+            statusText.innerText = "Ошибка связи с сервером.";
             statusText.style.color = "red";
             buildBtn.disabled = false;
+            buildBtn.style.background = "#2ecc71";
         });
+    }
+
+    function checkForReadyAPK() {
+        const checkInterval = setInterval(() => {
+            fetch(`https://github.com{GITHUB_USERNAME}/${GITHUB_REPO}/releases`)
+            .then(res => res.json())
+            .then(releases => {
+                if (releases && releases.length > 0) {
+                    const latestRelease = releases[0];
+                    if (latestRelease.assets && latestRelease.assets.length > 0) {
+                        const apkAsset = latestRelease.assets.find(asset => asset.name.endsWith('.apk'));
+                        if (apkAsset) {
+                            clearInterval(checkInterval);
+                            statusText.innerText = "Ваше приложение успешно собрано! Получите файл ниже: 🎉";
+                            statusText.style.color = "green";
+                            downloadBtn.href = apkAsset.browser_download_url;
+                            downloadBtn.style.display = "block";
+                        }
+                    }
+                }
+            })
+            .catch(err => console.log("Ожидание готовности файла..."));
+        }, 7000);
     }
 </script>
 </body>
