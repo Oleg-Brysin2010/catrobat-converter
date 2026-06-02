@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Конвертер Catrobat в APK</title>
     
-    <!-- ПОДКЛЮЧАЕМ ЧЕРЕЗ НАДЕЖНЫЙ CDN ЯНДЕКСА -->
-    <script src="https://yastatic.net"></script>
+    <!-- ПОДКЛЮЧАЕМ СКАЧАННЫЙ ВАМИ ФАЙЛ НАПРЯМУЮ -->
+    <script src="jszip.min.js"></script>
     
     <style>
         body {
@@ -106,8 +106,8 @@
         statusText.style.color = "#4A90E2";
 
         if (typeof JSZip === 'undefined') {
-            statusText.innerText = "Библиотека всё еще недоступна. Попробуйте обновить страницу без инкогнито.";
-            statusText.style.color = "orange";
+            statusText.innerText = "Ошибка: файл jszip.min.js не найден в вашей папке на GitHub!";
+            statusText.style.color = "red";
             return;
         }
 
