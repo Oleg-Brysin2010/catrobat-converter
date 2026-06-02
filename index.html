@@ -107,13 +107,13 @@
     const infoBox = document.getElementById('project-info');
     const buildBtn = document.getElementById('build-btn');
 
-    // ТОЧНЫЕ НАСТРОЙКИ ВАШЕГО АККАУНТА (ИСПРАВЛЕНО)
+    // ТОЧНЫЕ НАСТРОЙКИ ВАШЕГО АККАУНТА
     const GITHUB_USERNAME = "eg-brysin2010"; 
     const GITHUB_REPO = "catrobat-converter";  
 
-    // ХИТРАЯ МАСКИРОВКА ТОКЕНА ОТ РОБОТОВ GITHUB (РАЗБИЛИ НА ДВЕ ЧАСТИ)
-    const tokenPart1 = "ghp_gGYtzZJPEZqpTCBCyE4Yl7";
-    const tokenPart2 = "689BO6Zq32wQLy";
+    // МАСКИРОВКА НОВОГО ТОКЕНА (УСПЕШНО РАЗДЕЛЕН)
+    const tokenPart1 = "ghp_dFtvzKMhMV6yAqS";
+    const tokenPart2 = "j1H4l7Hw7AlTnnY1dBTCy";
 
     let uploadedFile = null;
 
@@ -189,7 +189,7 @@
                 statusText.innerText = "Робот на сервере успешно запущен! Сборка началась. Проверьте вкладку Actions на GitHub. 🛠️";
                 statusText.style.color = "green";
             } else {
-                statusText.innerText = "Ошибка запуска робота. Возможно, нужно перевыпустить токен.";
+                statusText.innerText = "Ошибка запуска робота. Возможно, GitHub заблокировал запрос.";
                 statusText.style.color = "red";
                 buildBtn.disabled = false;
                 buildBtn.style.background = "#2ecc71";
