@@ -1,0 +1,56 @@
+name: Сборщик Catrobat в APK
+
+# Робот будет просыпаться, когда бэкенд или сайт пришлют ему сигнал (repository_dispatch)
+on:
+  repository_dispatch:
+    types: [start-build]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    # 1. Готовим окружение и виртуальный мощный ПК
+    - name: Проверка репозитория
+      uses: actions/checkout@v4
+
+    # 2. Устанавливаем правильную версию Java для сборки Android приложений
+    - name: Установка Java JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    # 3. Скачиваем официальный открытый шаблон движка Pocket Code (Catroid)
+    - name: Скачивание шаблона Catroid
+      run: |
+        git clone https://github.com template-project
+        cd template-project
+        echo "Шаблон успешно загружен!"
+
+    # 4. Скачиваем файл пользователя (ссылку на который пришлет бэкенд)
+    - name: Загрузка файла проекта пользователя
+      run: |
+        curl -L -o project.catrobat "${{ github.event.client_payload.file_url }}"
+        echo "Файл проекта скачан на сервер сборки!"
+
+    # 5. Распаковываем проект внутрь шаблона Android-приложения
+    - name: Распаковка проекта в ресурсы приложения
+      run: |
+        mkdir -p template-project/catroid/src/main/assets/projects/
+        unzip project.catrobat -d template-project/catroid/src/main/assets/projects/default_project
+        echo "Проект успешно интегрирован в шаблоны Android!"
+
+    # 6. Запускаем тяжелую компиляцию через Gradle
+    - name: Сборка готового APK файла
+      run: |
+        cd template-project
+        chmod +x gradlew
+        ./gradlew assembleDebug --no-daemon
+
+    # 7. Сохраняем готовый APK в интернете, чтобы сайт мог дать ссылку на скачивание
+    - name: Загрузка готового APK в облако GitHub
+      uses: actions/upload-artifact@v4
+      with:
+        name: release-apk
+        path: template-project/catroid/build/outputs/apk/debug/*.apk
