@@ -43,7 +43,7 @@
     const infoBox = document.getElementById('project-info');
     const buildBtn = document.getElementById('build-btn');
 
-    // ТОЧНАЯ ССЫЛКА НА ТВОЙ СЕРВЕР С УЧЕТОМ ПОДДОМЕНА
+    // ОФИЦИАЛЬНЫЙ ТЕХНИЧЕСКИЙ ШЛЮЗ ДЛЯ ПРЯМЫХ ЗАПРОСОВ К SPACE БЕЗ БЛОКИРОВОК:
     const SERVER_URL = "https://hf.space";
 
     let uploadedFile = null;
@@ -103,11 +103,22 @@
             }
         })
         .catch((err) => {
-            statusText.innerText = "Ошибка связи. Подожди 10 секунд, пока сервер проснется, и нажми еще раз.";
+            statusText.innerText = "Ошибка связи. Убедись, что на Hugging Face горит зеленый статус Running.";
             statusText.style.color = "red";
             buildBtn.disabled = false;
         });
     }
+
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.background = '#e6f2ff'; });
+    dropZone.addEventListener('dragleave', () => { dropZone.style.background = '#f9fbfd'; });
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.style.background = '#f9fbfd';
+        if (e.dataTransfer.files.length > 0) {
+            uploadedFile = e.dataTransfer.files[0];
+            processCatrobatFile(uploadedFile);
+        }
+    });
 </script>
 </body>
 </html>
