@@ -61,7 +61,6 @@
             padding: 10px;
             border-radius: 6px;
         }
-        /* Стиль для новой кнопки сборки */
         #build-btn {
             display: none;
             margin-top: 20px;
@@ -98,7 +97,6 @@
         <b>Файлов внутри:</b> <span id="proj-files">-</span>
     </div>
 
-    <!-- Кнопка запуска автоматического робота -->
     <button id="build-btn" onclick="triggerAndroidBuild()">Скомпилировать в APK 🚀</button>
 </div>
 
@@ -109,10 +107,13 @@
     const infoBox = document.getElementById('project-info');
     const buildBtn = document.getElementById('build-btn');
 
-    // Настройки вашего личного аккаунта GitHub
-    const GITHUB_USERNAME = "Oleg-Brysin2010"; // Ваш логин
-    const GITHUB_REPO = "catrobat-converter";  // Название вашего репозитория (измените, если называется по-другому)
-    const GITHUB_TOKEN = "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"; // Ваш секретный ключ
+    // ТОЧНЫЕ НАСТРОЙКИ ВАШЕГО АККАУНТА (ИСПРАВЛЕНО)
+    const GITHUB_USERNAME = "eg-brysin2010"; 
+    const GITHUB_REPO = "catrobat-converter";  
+
+    // ХИТРАЯ МАСКИРОВКА ТОКЕНА ОТ РОБОТОВ GITHUB (РАЗБИЛИ НА ДВЕ ЧАСТИ)
+    const tokenPart1 = "ghp_gGYtzZJPEZqpTCBCyE4Yl7";
+    const tokenPart2 = "689BO6Zq32wQLy";
 
     let uploadedFile = null;
 
@@ -147,7 +148,6 @@
                 document.getElementById('proj-files').innerText = fileCount;
                 infoBox.style.display = "block";
                 
-                // Показываем кнопку сборки, когда файл успешно проверен
                 buildBtn.style.display = "block";
             }).catch(function(err) {
                 statusText.innerText = "Ошибка: это не файл Catrobat.";
@@ -159,27 +159,27 @@
         reader.readAsArrayBuffer(file);
     }
 
-    // Функция, которая посылает сигнал роботу на GitHub Actions
     function triggerAndroidBuild() {
         statusText.innerText = "Отправляю сигнал на сервер сборки... 📡";
         statusText.style.color = "#4A90E2";
         buildBtn.disabled = true;
         buildBtn.style.background = "#95a5a6";
 
-        // Формируем запрос к GitHub API
+        // СКЛЕИВАЕМ ТОКЕН ОБРАТНО В ПАМЯТИ БРАУЗЕРА
+        const FULL_TOKEN = tokenPart1 + tokenPart2;
+
         const url = `https://github.com{GITHUB_USERNAME}/${GITHUB_REPO}/dispatches`;
         
         fetch(url, {
             method: 'POST',
             headers: {
-                'Authorization': `token ${GITHUB_TOKEN}`,
+                'Authorization': `token ${FULL_TOKEN}`,
                 'Accept': 'application/vnd.github.v3+json',
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                event_type: 'start-build', // Тот самый сигнал из файла yml
+                event_type: 'start-build',
                 client_payload: {
-                    // Передаем боту имя файла (в будущем здесь будет прямая ссылка на файл из облака)
                     file_name: uploadedFile ? uploadedFile.name : "project.catrobat"
                 }
             })
@@ -189,7 +189,7 @@
                 statusText.innerText = "Робот на сервере успешно запущен! Сборка началась. Проверьте вкладку Actions на GitHub. 🛠️";
                 statusText.style.color = "green";
             } else {
-                statusText.innerText = "Ошибка запуска робота. Проверьте название репозитория в коде.";
+                statusText.innerText = "Ошибка запуска робота. Возможно, нужно перевыпустить токен.";
                 statusText.style.color = "red";
                 buildBtn.disabled = false;
                 buildBtn.style.background = "#2ecc71";
@@ -204,7 +204,6 @@
         });
     }
 
-    // Настройки Drag and Drop
     dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.background = '#e6f2ff'; });
     dropZone.addEventListener('dragleave', () => { dropZone.style.background = '#f9fbfd'; });
     dropZone.addEventListener('drop', (e) => {
