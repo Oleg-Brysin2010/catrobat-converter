@@ -1,5 +1,5 @@
-// Настройка прямого URL твоего Hugging Face Space (с роутом обработки)
-const SERVER_URL = "https://olegbrysin-catrobat-api.hf.space/convert";
+// Настройка прямого URL твоего Hugging Face Space (с косым слешем на конце!)
+const SERVER_URL = "https://olegbrysin-catrobat-api.hf.space/convert/";
 
 // Поиск элементов интерфейса
 const dropZone = document.getElementById('drop-zone');
@@ -21,7 +21,7 @@ fileInput.addEventListener('change', (e) => {
     }
 });
 
-// Drag and Drop события (Исправлен баг отсутствия переменной dropZone!)
+// Drag and Drop события
 dropZone.addEventListener('dragover', (e) => { 
     e.preventDefault(); 
     dropZone.style.background = '#e6f2ff'; 
