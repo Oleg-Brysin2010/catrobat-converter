@@ -44,7 +44,7 @@ dropZone.addEventListener('drop', (e) => {
 buildBtn.addEventListener('click', triggerAndroidBuild);
 
 /**
- * Локальное чтение и парсинг структуры .catrobat архива
+ * Локальное чтение и парсинг структуры .catrobat архива через JSZip
  */
 function processCatrobatFile(file) {
     if (!file) return;
@@ -72,7 +72,7 @@ function processCatrobatFile(file) {
 }
 
 /**
- * Отправка реального файла на Hugging Face Space
+ * Отправка реального файла на Hugging Face Space через FormData
  */
 function triggerAndroidBuild() {
     if (!uploadedFile) {
@@ -91,7 +91,7 @@ function triggerAndroidBuild() {
 
     fetch(SERVER_URL, {
         method: 'POST',
-        body: formData // Передаём файл, а не пустую строку JSON!
+        body: formData // Передаём файл напрямую бэкенду
     })
     .then(res => {
         if (!res.ok) throw new Error("Код ответа от сервера: " + res.status);
@@ -99,7 +99,7 @@ function triggerAndroidBuild() {
     })
     .then(data => {
         if (data.status === "success" || data.success) {
-            statusText.innerText = "УРА! Файл доставлен бэкенду. Сборка на GitHub Actions запущена! 🛠️";
+            statusText.innerText = "УРА! Робот успешно запущен! Проверяй вкладку Actions на GitHub, сборка пошла! 🛠️";
             statusText.style.color = "green";
         } else {
             statusText.innerText = "Ошибка сервера: " + (data.message || "Не удалось обработать файл");
