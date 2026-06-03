@@ -73,7 +73,7 @@ function processCatrobatFile(file) {
 
 /**
  * Отправка через создание невидимой HTML-формы.
- * Этот способ обходит любые CORS блокировки на мобильных устройствах!
+ * Исправлена передача имени поля для FastAPI!
  */
 function triggerAndroidBuild() {
     if (!uploadedFile) {
@@ -90,6 +90,9 @@ function triggerAndroidBuild() {
     form.method = 'POST';
     form.action = SERVER_URL;
     form.enctype = 'multipart/form-data';
+
+    // ВАЖНО: задаем имя поля "file", которое строго требует бэкенд в main.py!
+    fileInput.name = 'file';
 
     // Переносим выбранный файл из инпута в эту форму
     form.appendChild(fileInput);
