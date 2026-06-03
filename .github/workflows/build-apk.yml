@@ -3,6 +3,7 @@ name: Сборщик Catrobat в APK
 on:
   workflow_dispatch:
   repository_dispatch:
+    # Тип события, который должен отправлять твой Python-скрипт на бэкенде
     types: [start-build]
 
 jobs:
@@ -34,18 +35,19 @@ jobs:
         curl -L -o www/player.js https://catrob.at || echo "console.log('Ошибка плеера')" > www/player.js
         echo "Веб-плеер успешно подготовлен!"
 
-    # 5. Получаем файл пользователя
+    # 5. Получаем файл пользователя по ссылке, переданной бэкендом
     - name: Загрузка файла проекта пользователя
       run: |
         if [ "${{ github.event.client_payload.file_url }}" != "" ]; then
+          echo "Ссылка на файл получена: ${{ github.event.client_payload.file_url }}"
           curl -L -o project.catrobat "${{ github.event.client_payload.file_url }}"
         else
-          echo "Ручной запуск! Создаем тестовый проект..."
+          echo "Ручной запуск или пустая ссылка! Создаем тестовый проект..."
           echo "test" > test.txt
           zip project.catrobat test.txt
         fi
 
-    # 6. Распаковываем проект внутрь веб-сборки
+    # 6. Рапасховываем проект внутрь веб-сборки
     - name: Интеграция проекта в приложение
       run: |
         mkdir -p www/project
