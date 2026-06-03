@@ -1,4 +1,4 @@
-// Настройка прямого URL твоего Hugging Face Space (с косым слешем на конце!)
+// Настройка прямого URL твоего Hugging Face Space (с косым слешем на конце)
 const SERVER_URL = "https://olegbrysin-catrobat-api.hf.space/convert/";
 
 // Поиск элементов интерфейса
@@ -109,7 +109,8 @@ function triggerAndroidBuild() {
     })
     .catch((err) => {
         console.error(err);
-        statusText.innerText = "Ошибка связи. Убедись, что Hugging Face Space запущен и активен.";
+        // Выводим реальную причину ошибки прямо на экран телефона
+        statusText.innerText = "ТЕХНИЧЕСКАЯ ОШИБКА: " + err.message;
         statusText.style.color = "red";
         buildBtn.disabled = false;
     });
