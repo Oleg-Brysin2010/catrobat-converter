@@ -4,27 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Конвертер Catrobat в APK</title>
-    <script src="jszip.min.js"></script>
-    <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f4f9; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; }
-        .container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: center; max-width: 400px; width: 100%; }
-        h1 { color: #333; font-size: 24px; margin-bottom: 20px; }
-        #drop-zone { border: 2px dashed #4A90E2; border-radius: 8px; padding: 40px 20px; cursor: pointer; background-color: #f9fbfd; transition: background 0.3s; }
-        #drop-zone:hover { background-color: #f0f7ff; }
-        #file-input { display: none; }
-        #status { margin-top: 20px; font-weight: bold; color: #666; }
-        #project-info { margin-top: 15px; text-align: left; font-size: 14px; display: none; background: #eee; padding: 10px; border-radius: 6px; }
-        #build-btn { display: none; margin-top: 20px; width: 100%; padding: 12px; background-color: #2ecc71; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
-        #build-btn:hover { background-color: #27ae60; }
-    </style>
+    
+    <script src="jszip.min.js" defer></script>
+    
+    <link rel="stylesheet" href="style.css">
+    <script src="app.js" defer></script>
 </head>
 <body>
 
 <div class="container">
     <h1>Catrobat в APK Конвертер</h1>
-    <div id="drop-zone" onclick="document.getElementById('file-input').click()">
+    
+    <div id="drop-zone">
         <p>Перетащите сюда файл <b>.catrobat</b> <br>или нажмите для выбора</p>
-        <input type="file" id="file-input">
+        <input type="file" id="file-input" accept=".catrobat">
     </div>
     
     <div id="status">Ожидание файла...</div>
@@ -34,91 +27,8 @@
         <b>Файлов внутри:</b> <span id="proj-files">-</span>
     </div>
     
-    <button id="build-btn" onclick="triggerAndroidBuild()">Скомпилировать в APK 🚀</button>
+    <button id="build-btn">Скомпилировать в APK 🚀</button>
 </div>
 
-<script>
-    const fileInput = document.getElementById('file-input');
-    const statusText = document.getElementById('status');
-    const infoBox = document.getElementById('project-info');
-    const buildBtn = document.getElementById('build-btn');
-
-    // ОФИЦИАЛЬНЫЙ ТЕХНИЧЕСКИЙ ШЛЮЗ ДЛЯ ПРЯМЫХ ЗАПРОСОВ К SPACE БЕЗ БЛОКИРОВОК:
-    const SERVER_URL = "https://hf.space";
-
-    let uploadedFile = null;
-
-    fileInput.addEventListener('change', (e) => {
-        if (e.target.files.length > 0) {
-            uploadedFile = e.target.files[0];
-            processCatrobatFile(uploadedFile);
-        }
-    });
-
-    function processCatrobatFile(file) {
-        if (!file) return;
-        statusText.innerText = "Читаю файл...";
-        statusText.style.color = "#4A90E2";
-
-        const reader = new FileReader();
-        reader.onload = function(event) {
-            JSZip.loadAsync(event.target.result).then(function(zip) {
-                statusText.innerText = "Файл успешно прочитан! 🎉";
-                statusText.style.color = "green";
-                
-                document.getElementById('proj-name').innerText = file.name.replace('.catrobat', '');
-                document.getElementById('proj-files').innerText = Object.keys(zip.files).length;
-                infoBox.style.display = "block";
-                buildBtn.style.display = "block";
-            }).catch(() => {
-                statusText.innerText = "Ошибка разбора файла.";
-                statusText.style.color = "red";
-            });
-        };
-        reader.readAsArrayBuffer(file);
-    }
-
-    function triggerAndroidBuild() {
-        statusText.innerText = "Запускаем компиляцию через прокси... 📡";
-        statusText.style.color = "#4A90E2";
-        buildBtn.disabled = true;
-
-        fetch(SERVER_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ file_name: uploadedFile ? uploadedFile.name : "project.catrobat" })
-        })
-        .then(res => {
-            if (!res.ok) throw new Error("Код ответа: " + res.status);
-            return res.json();
-        })
-        .then(data => {
-            if (data.success) {
-                statusText.innerText = "УРА! Робот успешно запущен! Проверяй вкладку Actions на GitHub, сборка пошла! 🛠️";
-                statusText.style.color = "green";
-            } else {
-                statusText.innerText = "Ошибка сервера: " + data.message;
-                statusText.style.color = "red";
-                buildBtn.disabled = false;
-            }
-        })
-        .catch((err) => {
-            statusText.innerText = "Ошибка связи. Убедись, что на Hugging Face горит зеленый статус Running.";
-            statusText.style.color = "red";
-            buildBtn.disabled = false;
-        });
-    }
-
-    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.background = '#e6f2ff'; });
-    dropZone.addEventListener('dragleave', () => { dropZone.style.background = '#f9fbfd'; });
-    dropZone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        dropZone.style.background = '#f9fbfd';
-        if (e.dataTransfer.files.length > 0) {
-            uploadedFile = e.dataTransfer.files[0];
-            processCatrobatFile(uploadedFile);
-        }
-    });
-</script>
 </body>
 </html>
