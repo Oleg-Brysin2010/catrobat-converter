@@ -1,4 +1,4 @@
-// Настройка прямого URL твоего Hugging Face Space (с косым слешем на конце)
+// Настройка прямого URL твоего Hugging Face Space
 const SERVER_URL = "https://olegbrysin-catrobat-api.hf.space/convert/";
 
 // Поиск элементов интерфейса
@@ -72,7 +72,8 @@ function processCatrobatFile(file) {
 }
 
 /**
- * Отправка реального файла на Hugging Face Space через FormData
+ * Отправка через создание невидимой HTML-формы.
+ * Этот способ обходит любые CORS блокировки на мобильных устройствах!
  */
 function triggerAndroidBuild() {
     if (!uploadedFile) {
@@ -81,37 +82,19 @@ function triggerAndroidBuild() {
         return;
     }
 
-    statusText.innerText = "Отправка файла на сервер компиляции... 📡";
-    statusText.style.color = "#4A90E2";
-    buildBtn.disabled = true;
+    statusText.innerText = "Перенаправление на сервер компиляции... 🚀";
+    statusText.style.color = "green";
 
-    // Создаем контейнер FormData для загрузки бинарного файла на бэкенд
-    const formData = new FormData();
-    formData.append("file", uploadedFile);
+    // Создаем виртуальную форму прямо в памяти браузера
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = SERVER_URL;
+    form.enctype = 'multipart/form-data';
 
-    fetch(SERVER_URL, {
-        method: 'POST',
-        body: formData // Передаём файл напрямую бэкенду
-    })
-    .then(res => {
-        if (!res.ok) throw new Error("Код ответа от сервера: " + res.status);
-        return res.json();
-    })
-    .then(data => {
-        if (data.status === "success" || data.success) {
-            statusText.innerText = "УРА! Робот успешно запущен! Проверяй вкладку Actions на GitHub, сборка пошла! 🛠️";
-            statusText.style.color = "green";
-        } else {
-            statusText.innerText = "Ошибка сервера: " + (data.message || "Не удалось обработать файл");
-            statusText.style.color = "red";
-            buildBtn.disabled = false;
-        }
-    })
-    .catch((err) => {
-        console.error(err);
-        // Выводим реальную причину ошибки прямо на экран телефона
-        statusText.innerText = "ТЕХНИЧЕСКАЯ ОШИБКА: " + err.message;
-        statusText.style.color = "red";
-        buildBtn.disabled = false;
-    });
+    // Переносим выбранный файл из инпута в эту форму
+    form.appendChild(fileInput);
+
+    // Добавляем форму на страницу и принудительно отправляем её
+    document.body.appendChild(form);
+    form.submit();
 }
